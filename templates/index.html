@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Créditos</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Gestión de Créditos</h1>
+
+    <!-- Formulario -->
+    <form id="formulario">
+        <input type="hidden" name="id" id="id">
+        <input type="text" name="cliente" placeholder="Cliente" required>
+        <input type="number" name="monto" placeholder="Monto" required>
+        <input type="number" name="tasa" placeholder="Tasa de interés (%)" required>
+        <input type="number" name="plazo" placeholder="Plazo en meses" required>
+        <input type="date" name="fecha" required>
+        <textarea name="notas" placeholder="Notas..."></textarea>
+        <button type="submit">Guardar</button>
+    </form>
+
+    <!-- Tabla de créditos -->
+    <h2>Créditos Registrados</h2>
+    <table id="tabla-creditos">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Monto</th>
+                <th>Tasa (%)</th>
+                <th>Plazo</th>
+                <th>Fecha</th>
+                <th>Notas</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Gráfica -->
+    <h2>Gráfica de Créditos</h2>
+    <img src="/grafica" alt="Gráfica de créditos" style="max-width: 100%;">
+
+    <script>
+        // Cargar todos los créditos
+        async function cargarCreditos() {
+            const res = await fetch('/api/creditos');
+            const datos = await res.json();
+            const tbody = document.querySelector("#tabla-creditos tbody");
+            tbody.innerHTML = "";
+
+            datos.forEach(c => {
+                const fila = document.createElement("tr");
+                fila.innerHTML = `
+                    <td>${c[1]}</td>
+                    <td>${c[2]}</td>
+                    <td>${c[3]}</td>
+                    <td>${c[4]}</td>
+                    <td>${c[5]}</td>
+                    <td>${c[6]}</td>
+                    <td>
+                        <button onclick="editarCredito(${c[0]}, '${c[1]}', ${c[2]}, ${c[3]}, ${c[4]}, '${c[5]}', '${c[6]}')">✏️</button>
+                        <button onclick="eliminarCredito(${c[0]})">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+        }
+
+        // Enviar formulario
+        document.getElementById("formulario").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const id = form.id.value;
+            const data = {
+                cliente: form.cliente.value,
+                monto: parseFloat(form.monto.value),
+                tasa: parseFloat(form.tasa.value),
+                plazo: parseInt(form.plazo.value),
+                fecha: form.fecha.value,
+                notas: form.notas.value
+            };
+
+            if (id) {
+                // Editar
+                await fetch(`/api/creditos/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+            } else {
+                // Crear nuevo
+                await fetch("/api/creditos", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+            }
+
+            form.reset();
+            cargarCreditos();
+            actualizarGrafica();
+        });
+
+        // Función para editar
+        function editarCredito(id, cliente, monto, tasa, plazo, fecha, notas) {
+            const f = document.getElementById("formulario");
+            f.id.value = id;
+            f.cliente.value = cliente;
+            f.monto.value = monto;
+            f.tasa.value = tasa;
+            f.plazo.value = plazo;
+            f.fecha.value = fecha;
+            f.notas.value = notas;
+        }
+
+        // Función para eliminar
+        async function eliminarCredito(id) {
+            if (confirm("¿Seguro que deseas eliminar este crédito?")) {
+                await fetch(`/api/creditos/${id}`, {
+                    method: "DELETE"
+                });
+                cargarCreditos();
+                actualizarGrafica();
+            }
+        }
+
+        function actualizarGrafica() {
+            const grafica = document.querySelector("img");
+            grafica.src = "/grafica?" + new Date().getTime(); // evita cache
+        }
+
+        cargarCreditos();
+    </script>
+</body>
+</html>
