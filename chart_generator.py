@@ -15,25 +15,22 @@ def generar_grafica():
     data = cursor.fetchall()
     conn.close()
 
-    plt.figure(figsize=(10, 5))
+    clientes = [fila[0] for fila in data]
+    montos = [float(fila[1]) for fila in data]
+
+    # Tamaño dinámico de la gráfica según el número de clientes
+    width = max(10, len(clientes) * 1.2)
+    plt.figure(figsize=(width, 6))
     ax = plt.gca()
-    ax.set_facecolor('#ffffff')  # Fondo blanco
+    ax.set_facecolor('#ffffff')
     plt.grid(axis='y', linestyle='--', linewidth=0.5, alpha=0.6)
 
     if not data:
         plt.text(0.5, 0.5, "No hay datos para graficar", ha='center', va='center', fontsize=16, color='#888')
         plt.axis('off')
     else:
-        clientes = [fila[0] for fila in data]
-        montos = [float(fila[1]) for fila in data]
+        barras = plt.bar(clientes, montos, color='#3498db', edgecolor='#2c3e50', linewidth=0.5)
 
-        barras = plt.bar(clientes, montos, color='#3498db', edgecolor='#2980b9', linewidth=1)
-
-        for bar in barras:
-            bar.set_linewidth(0.5)
-            bar.set_edgecolor('#2c3e50')
-
-        # Etiquetas de monto encima de cada barra
         for i, bar in enumerate(barras):
             plt.text(bar.get_x() + bar.get_width() / 2,
                      bar.get_height() + 0.5,
@@ -43,18 +40,7 @@ def generar_grafica():
         plt.title("Créditos Otorgados por Cliente", fontsize=14, color='#2c3e50')
         plt.xlabel("Cliente", fontsize=12)
         plt.ylabel("Monto del Crédito", fontsize=12)
-        plt.xticks(rotation=30)
-        plt.tight_layout()
-
-        # Bordes redondeados
-        for bar in barras:
-            bar.set_linewidth(0.5)
-            bar.set_edgecolor('#2c3e50')
-
-        plt.title("Créditos Otorgados por Cliente", fontsize=14, color='#2c3e50')
-        plt.xlabel("Cliente", fontsize=12)
-        plt.ylabel("Monto del Crédito", fontsize=12)
-        plt.xticks(rotation=30)
+        plt.xticks(rotation=45, ha='right', fontsize=10)
         plt.tight_layout()
 
     output_path = os.path.join("static", "grafica.png")
