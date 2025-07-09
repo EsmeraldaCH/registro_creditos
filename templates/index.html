@@ -99,6 +99,9 @@
     document.getElementById('plazo').value = plazo;
     document.getElementById('fecha_otorgamiento').value = fecha;
     document.getElementById('notas').value = notas;
+
+    // Scroll suave hacia el formulario al editar
+    document.getElementById('formulario').scrollIntoView({ behavior: 'smooth' });
   }
 
   async function eliminarCredito(id) {
@@ -183,4 +186,6 @@
   }
 
   cargarCreditos();
-</script>
+  </script>
+</body>
+</html>
